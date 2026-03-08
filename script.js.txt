@@ -1,131 +1,103 @@
-// Load data from localStorage (replaces records.txt)
-let students = JSON.parse(localStorage.getItem('tupv_records')) || [];
+let students = JSON.parse(localStorage.getItem('tupv_data')) || [];
 
 function handleLogin() {
-    // Basic simulation of login
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('main-app').classList.remove('hidden');
     renderTable();
 }
 
 function showSection(id) {
-    ['dashboard', 'records', 'settings'].forEach(sec => {
-        document.getElementById(sec + '-section').classList.add('hidden');
-    });
+    ['dashboard', 'records', 'settings'].forEach(s => document.getElementById(s + '-section').classList.add('hidden'));
     document.getElementById(id + '-section').classList.remove('hidden');
-    document.getElementById('section-title').innerText = id.charAt(0).toUpperCase() + id.slice(1);
-}
-
-// Logic for Raw Score -> 1.0 to 10.0 scaling
-function getScaledInput(termName, type) {
-    let score = parseFloat(prompt(`[${termName} ${type}]\nEnter Raw Score:`));
-    let total = parseFloat(prompt(`[${termName} ${type}]\nEnter Total Possible Score:`));
-    
-    if (isNaN(score) || isNaN(total) || total <= 0) {
-        alert("Invalid input. Grade not saved.");
-        return null;
-    }
-    return ((score / total) * 9) + 1;
+    document.getElementById('section-title').innerText = id.toUpperCase();
 }
 
 function addNewStudent() {
     const name = document.getElementById('stud-name').value;
     const age = document.getElementById('stud-age').value;
-    
-    if (!name || !age) return alert("Please enter name and age.");
+    if (!name || !age) return alert("Fill all fields");
 
-    students.push({
-        name: name,
-        age: age,
-        prelim: -1,
-        midterm: -1,
-        endterm: -1,
-        average: 0
-    });
-
+    students.push({ name, age, prelim: -1, midterm: -1, endterm: -1, average: 0 });
     document.getElementById('stud-name').value = '';
     document.getElementById('stud-age').value = '';
-    saveData();
-    alert("Student added to records!");
+    saveAndRefresh();
 }
 
 function encodeGrade(index, term) {
-    alert(`Encoding ${term.toUpperCase()} for ${students[index].name}`);
-    
-    // 1. Get Weekly Assessment (60%)
-    let weekly = getScaledInput(term.toUpperCase(), "Weekly Assessment");
-    if (weekly === null) return;
+    const getGrade = (type) => {
+        let s = parseFloat(prompt(`Enter Raw Score for ${type}:`));
+        let t = parseFloat(prompt(`Enter Total Score for ${type}:`));
+        return (isNaN(s) || isNaN(t) || t <= 0) ? null : ((s / t) * 9) + 1;
+    };
 
-    // 2. Get Major Exam (40%)
-    let major = getScaledInput(term.toUpperCase(), "Major Exam");
+    let weekly = getGrade("Weekly Assessment");
+    if (weekly === null) return;
+    let major = getGrade("Major Exam");
     if (major === null) return;
 
-    let finalTermGrade = (weekly * 0.6) + (major * 0.4);
-    students[index][term] = parseFloat(finalTermGrade.toFixed(2));
+    students[index][term] = parseFloat(((weekly * 0.6) + (major * 0.4)).toFixed(2));
     
-    calculateFinalAverage(students[index]);
-    saveData();
-    renderTable();
-}
-
-function calculateFinalAverage(s) {
+    // Recalculate Average
+    let s = students[index];
     let p = s.prelim === -1 ? 0 : s.prelim;
     let m = s.midterm === -1 ? 0 : s.midterm;
     let e = s.endterm === -1 ? 0 : s.endterm;
     s.average = (p * 0.3 + m * 0.3 + e * 0.4).toFixed(2);
+
+    saveAndRefresh();
 }
 
-function deleteStudent(index) {
-    if (confirm("Delete this record permanently?")) {
-        students.splice(index, 1);
-        saveData();
-        renderTable();
+function deleteStudent(i) {
+    if (confirm("Delete this student?")) {
+        students.splice(i, 1);
+        saveAndRefresh();
     }
 }
 
 function wipeAll() {
-    if (confirm("EXTREME DANGER: Wipe ALL records?")) {
+    if (confirm("DELETE ALL DATA?")) {
         students = [];
-        saveData();
-        renderTable();
+        saveAndRefresh();
     }
 }
 
-function saveData() {
-    localStorage.setItem('tupv_records', JSON.stringify(students));
+function saveAndRefresh() {
+    localStorage.setItem('tupv_data', JSON.stringify(students));
+    renderTable();
 }
 
 function renderTable() {
-    const tbody = document.getElementById('student-list');
-    tbody.innerHTML = '';
+    const list = document.getElementById('student-list');
+    const query = document.getElementById('searchBar').value.toLowerCase();
+    document.getElementById('stat-count').innerText = students.length;
+    list.innerHTML = '';
 
     students.forEach((s, i) => {
-        // Target Logic (from your displayStudent function)
-        let statusHtml = "";
+        if (!s.name.toLowerCase().includes(query)) return;
+
+        let statusText = "";
         if (s.endterm !== -1) {
-            statusHtml = s.average >= 5.0 ? '<span class="status-pass">PASSED</span>' : '<span class="status-fail">FAILED</span>';
+            statusText = s.average >= 5.0 ? '<span class="pass">PASSED</span>' : '<span class="fail">FAILED</span>';
         } else {
             let pts = (s.prelim !== -1 ? s.prelim * 0.3 : 0) + (s.midterm !== -1 ? s.midterm * 0.3 : 0);
-            let weightRemaining = 1 - ((s.prelim !== -1 ? 0.3 : 0) + (s.midterm !== -1 ? 0.3 : 0));
-            let needed = (5.0 - pts) / weightRemaining;
-
-            if (needed <= 1.0) statusHtml = "Safe";
-            else if (needed > 10.0) statusHtml = '<span class="status-crit">CRITICAL</span>';
-            else statusHtml = `Need ${needed.toFixed(2)}`;
+            let weightLeft = 1 - ((s.prelim !== -1 ? 0.3 : 0) + (s.midterm !== -1 ? 0.3 : 0));
+            let needed = (5.0 - pts) / weightLeft;
+            
+            if (needed <= 1.0) statusText = '<span class="safe">SAFE</span>';
+            else if (needed > 10.0) statusText = '<span class="crit">CRITICAL</span>';
+            else statusText = `Need ${needed.toFixed(2)}`;
         }
 
-        const row = `
+        list.innerHTML += `
             <tr>
-                <td><strong>${s.name}</strong></td>
-                <td>${s.age}</td>
-                <td class="clickable-grade" onclick="encodeGrade(${i}, 'prelim')">${s.prelim === -1 ? '+' : s.prelim}</td>
-                <td class="clickable-grade" onclick="encodeGrade(${i}, 'midterm')">${s.midterm === -1 ? '+' : s.midterm}</td>
-                <td class="clickable-grade" onclick="encodeGrade(${i}, 'endterm')">${s.endterm === -1 ? '+' : s.endterm}</td>
-                <td>${s.average}</td>
-                <td>${statusHtml}</td>
-                <td><button class="btn-danger" onclick="deleteStudent(${i})">Del</button></td>
+                <td><strong>${s.name}</strong><br><small>Age: ${s.age}</small></td>
+                <td class="clickable" onclick="encodeGrade(${i}, 'prelim')">${s.prelim === -1 ? '+' : s.prelim}</td>
+                <td class="clickable" onclick="encodeGrade(${i}, 'midterm')">${s.midterm === -1 ? '+' : s.midterm}</td>
+                <td class="clickable" onclick="encodeGrade(${i}, 'endterm')">${s.endterm === -1 ? '+' : s.endterm}</td>
+                <td><strong>${s.average}</strong></td>
+                <td>${statusText}</td>
+                <td><button class="btn-danger" onclick="deleteStudent(${i})">🗑️</button></td>
             </tr>
         `;
-        tbody.innerHTML += row;
     });
 }
