@@ -1,0 +1,131 @@
+// Load data from localStorage (replaces records.txt)
+let students = JSON.parse(localStorage.getItem('tupv_records')) || [];
+
+function handleLogin() {
+    // Basic simulation of login
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+    renderTable();
+}
+
+function showSection(id) {
+    ['dashboard', 'records', 'settings'].forEach(sec => {
+        document.getElementById(sec + '-section').classList.add('hidden');
+    });
+    document.getElementById(id + '-section').classList.remove('hidden');
+    document.getElementById('section-title').innerText = id.charAt(0).toUpperCase() + id.slice(1);
+}
+
+// Logic for Raw Score -> 1.0 to 10.0 scaling
+function getScaledInput(termName, type) {
+    let score = parseFloat(prompt(`[${termName} ${type}]\nEnter Raw Score:`));
+    let total = parseFloat(prompt(`[${termName} ${type}]\nEnter Total Possible Score:`));
+    
+    if (isNaN(score) || isNaN(total) || total <= 0) {
+        alert("Invalid input. Grade not saved.");
+        return null;
+    }
+    return ((score / total) * 9) + 1;
+}
+
+function addNewStudent() {
+    const name = document.getElementById('stud-name').value;
+    const age = document.getElementById('stud-age').value;
+    
+    if (!name || !age) return alert("Please enter name and age.");
+
+    students.push({
+        name: name,
+        age: age,
+        prelim: -1,
+        midterm: -1,
+        endterm: -1,
+        average: 0
+    });
+
+    document.getElementById('stud-name').value = '';
+    document.getElementById('stud-age').value = '';
+    saveData();
+    alert("Student added to records!");
+}
+
+function encodeGrade(index, term) {
+    alert(`Encoding ${term.toUpperCase()} for ${students[index].name}`);
+    
+    // 1. Get Weekly Assessment (60%)
+    let weekly = getScaledInput(term.toUpperCase(), "Weekly Assessment");
+    if (weekly === null) return;
+
+    // 2. Get Major Exam (40%)
+    let major = getScaledInput(term.toUpperCase(), "Major Exam");
+    if (major === null) return;
+
+    let finalTermGrade = (weekly * 0.6) + (major * 0.4);
+    students[index][term] = parseFloat(finalTermGrade.toFixed(2));
+    
+    calculateFinalAverage(students[index]);
+    saveData();
+    renderTable();
+}
+
+function calculateFinalAverage(s) {
+    let p = s.prelim === -1 ? 0 : s.prelim;
+    let m = s.midterm === -1 ? 0 : s.midterm;
+    let e = s.endterm === -1 ? 0 : s.endterm;
+    s.average = (p * 0.3 + m * 0.3 + e * 0.4).toFixed(2);
+}
+
+function deleteStudent(index) {
+    if (confirm("Delete this record permanently?")) {
+        students.splice(index, 1);
+        saveData();
+        renderTable();
+    }
+}
+
+function wipeAll() {
+    if (confirm("EXTREME DANGER: Wipe ALL records?")) {
+        students = [];
+        saveData();
+        renderTable();
+    }
+}
+
+function saveData() {
+    localStorage.setItem('tupv_records', JSON.stringify(students));
+}
+
+function renderTable() {
+    const tbody = document.getElementById('student-list');
+    tbody.innerHTML = '';
+
+    students.forEach((s, i) => {
+        // Target Logic (from your displayStudent function)
+        let statusHtml = "";
+        if (s.endterm !== -1) {
+            statusHtml = s.average >= 5.0 ? '<span class="status-pass">PASSED</span>' : '<span class="status-fail">FAILED</span>';
+        } else {
+            let pts = (s.prelim !== -1 ? s.prelim * 0.3 : 0) + (s.midterm !== -1 ? s.midterm * 0.3 : 0);
+            let weightRemaining = 1 - ((s.prelim !== -1 ? 0.3 : 0) + (s.midterm !== -1 ? 0.3 : 0));
+            let needed = (5.0 - pts) / weightRemaining;
+
+            if (needed <= 1.0) statusHtml = "Safe";
+            else if (needed > 10.0) statusHtml = '<span class="status-crit">CRITICAL</span>';
+            else statusHtml = `Need ${needed.toFixed(2)}`;
+        }
+
+        const row = `
+            <tr>
+                <td><strong>${s.name}</strong></td>
+                <td>${s.age}</td>
+                <td class="clickable-grade" onclick="encodeGrade(${i}, 'prelim')">${s.prelim === -1 ? '+' : s.prelim}</td>
+                <td class="clickable-grade" onclick="encodeGrade(${i}, 'midterm')">${s.midterm === -1 ? '+' : s.midterm}</td>
+                <td class="clickable-grade" onclick="encodeGrade(${i}, 'endterm')">${s.endterm === -1 ? '+' : s.endterm}</td>
+                <td>${s.average}</td>
+                <td>${statusHtml}</td>
+                <td><button class="btn-danger" onclick="deleteStudent(${i})">Del</button></td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+}
