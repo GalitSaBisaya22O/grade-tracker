@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TUPV Grade Tracker | AIMS Portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="login-screen" class="overlay">
+        <div class="login-box">
+            <h2>TUPV AIMS Login</h2>
+            <input type="text" id="username" placeholder="Employee ID / Student No.">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="handleLogin()">Login</button>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden">
+        <nav class="sidebar">
+            <div class="profile-section">
+                <img src="https://via.placeholder.com/80" alt="User">
+                <p>ADMIN REGISTRAR</p>
+            </div>
+            <ul>
+                <li onclick="showSection('encode')">Encode Grades</li>
+                <li onclick="showSection('records')">View Records</li>
+                <li onclick="showSection('settings')">System Settings</li>
+                <li onclick="location.reload()">Logout</li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <header>
+                <h1 id="section-title">Dashboard</h1>
+            </header>
+            
+            <section id="encode-section">
+                <h3>New Grade Entry</h3>
+                <div class="form-group">
+                    <input type="text" id="stud-name" placeholder="Student Full Name">
+                    <input type="number" id="stud-age" placeholder="Age">
+                    <button onclick="addNewStudent()">Create Record</button>
+                </div>
+            </section>
+
+            <section id="records-section" class="hidden">
+                <table id="grade-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Prelim</th>
+                            <th>Midterm</th>
+                            <th>Endterm</th>
+                            <th>Average</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-list"></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
