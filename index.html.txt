@@ -2,30 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TUPV Grade Tracker | AIMS Portal</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <div id="login-screen" class="overlay">
         <div class="login-box">
-            <h2>TUPV AIMS Login</h2>
-            <input type="text" id="username" placeholder="Employee ID / Student No.">
+            <div class="logo-placeholder">TUPV</div>
+            <h2>AIMS PORTAL</h2>
+            <p>Please sign in to manage grades</p>
+            <input type="text" id="username" placeholder="Employee ID">
             <input type="password" id="password" placeholder="Password">
-            <button onclick="handleLogin()">Login</button>
+            <button onclick="handleLogin()">LOGIN</button>
         </div>
     </div>
 
     <div id="main-app" class="hidden">
         <nav class="sidebar">
             <div class="profile-section">
-                <img src="https://via.placeholder.com/80" alt="User">
-                <p>ADMIN REGISTRAR</p>
+                <div class="avatar">ADM</div>
+                <p><strong>REGISTRAR ADMIN</strong></p>
+                <span>TUPV-2026-001</span>
             </div>
             <ul>
-                <li onclick="showSection('encode')">Encode Grades</li>
-                <li onclick="showSection('records')">View Records</li>
-                <li onclick="showSection('settings')">System Settings</li>
-                <li onclick="location.reload()">Logout</li>
+                <li onclick="showSection('dashboard')">🏠 Dashboard</li>
+                <li onclick="showSection('records')">📊 Student Records</li>
+                <li onclick="showSection('settings')">⚙️ System Settings</li>
+                <li onclick="location.reload()" style="margin-top: 50px; color: #ff8a8a;">🚪 Logout</li>
             </ul>
         </nav>
 
@@ -33,33 +38,53 @@
             <header>
                 <h1 id="section-title">Dashboard</h1>
             </header>
-            
-            <section id="encode-section">
-                <h3>New Grade Entry</h3>
-                <div class="form-group">
-                    <input type="text" id="stud-name" placeholder="Student Full Name">
-                    <input type="number" id="stud-age" placeholder="Age">
-                    <button onclick="addNewStudent()">Create Record</button>
+
+            <section id="dashboard-section">
+                <div class="card">
+                    <h3>Enroll New Student</h3>
+                    <div class="form-group">
+                        <input type="text" id="stud-name" placeholder="Full Name (e.g. Juan Dela Cruz)">
+                        <input type="number" id="stud-age" placeholder="Age">
+                        <button class="btn-primary" onclick="addNewStudent()">Add Record</button>
+                    </div>
                 </div>
             </section>
 
             <section id="records-section" class="hidden">
-                <table id="grade-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Prelim</th>
-                            <th>Midterm</th>
-                            <th>Endterm</th>
-                            <th>Average</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="student-list"></tbody>
-                </table>
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3>Active Academic Records</h3>
+                        <small>Click a term (Prelim/Mid/End) to encode grades</small>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Age</th>
+                                <th>Prelim (30%)</th>
+                                <th>Midterm (30%)</th>
+                                <th>Endterm (40%)</th>
+                                <th>Average</th>
+                                <th>Status / Target</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-list">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="settings-section" class="hidden">
+                <div class="card">
+                    <h3>System Administration</h3>
+                    <p>Wiping the database will remove all student records from your local storage.</p>
+                    <button class="btn-danger" onclick="wipeAll()">WIPE ALL DATA</button>
+                </div>
             </section>
         </main>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
