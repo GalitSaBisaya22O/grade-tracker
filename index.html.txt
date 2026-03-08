@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TUPV Grade Tracker | AIMS Portal</title>
+    <title>TUPV AIMS | Grade Tracker Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="login-screen" class="overlay">
         <div class="login-box">
-            <div class="logo-placeholder">TUPV</div>
+            <div class="logo">TUPV</div>
             <h2>AIMS PORTAL</h2>
-            <p>Please sign in to manage grades</p>
             <input type="text" id="username" placeholder="Employee ID">
             <input type="password" id="password" placeholder="Password">
             <button onclick="handleLogin()">LOGIN</button>
@@ -21,65 +20,68 @@
 
     <div id="main-app" class="hidden">
         <nav class="sidebar">
-            <div class="profile-section">
+            <div class="profile">
                 <div class="avatar">ADM</div>
-                <p><strong>REGISTRAR ADMIN</strong></p>
-                <span>TUPV-2026-001</span>
+                <p><strong>REGISTRAR</strong></p>
+                <span>v2.0 Stable</span>
             </div>
             <ul>
                 <li onclick="showSection('dashboard')">🏠 Dashboard</li>
                 <li onclick="showSection('records')">📊 Student Records</li>
                 <li onclick="showSection('settings')">⚙️ System Settings</li>
-                <li onclick="location.reload()" style="margin-top: 50px; color: #ff8a8a;">🚪 Logout</li>
+                <li onclick="location.reload()" class="logout-btn">🚪 Logout</li>
             </ul>
         </nav>
 
         <main class="content">
             <header>
                 <h1 id="section-title">Dashboard</h1>
+                <div class="search-box">
+                    <input type="text" id="searchBar" placeholder="Search student name..." onkeyup="renderTable()">
+                </div>
             </header>
 
             <section id="dashboard-section">
-                <div class="card">
-                    <h3>Enroll New Student</h3>
-                    <div class="form-group">
-                        <input type="text" id="stud-name" placeholder="Full Name (e.g. Juan Dela Cruz)">
-                        <input type="number" id="stud-age" placeholder="Age">
-                        <button class="btn-primary" onclick="addNewStudent()">Add Record</button>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Enroll Student</h3>
+                        <div class="form-group">
+                            <input type="text" id="stud-name" placeholder="Full Name">
+                            <input type="number" id="stud-age" placeholder="Age">
+                            <button class="btn-primary" onclick="addNewStudent()">+ Create Record</button>
+                        </div>
+                    </div>
+                    <div class="card stats">
+                        <h3>Quick Stats</h3>
+                        <p>Total Students: <span id="stat-count">0</span></p>
                     </div>
                 </div>
             </section>
 
             <section id="records-section" class="hidden">
                 <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3>Active Academic Records</h3>
-                        <small>Click a term (Prelim/Mid/End) to encode grades</small>
-                    </div>
                     <table>
                         <thead>
                             <tr>
                                 <th>Student Name</th>
-                                <th>Age</th>
                                 <th>Prelim (30%)</th>
                                 <th>Midterm (30%)</th>
                                 <th>Endterm (40%)</th>
-                                <th>Average</th>
+                                <th>Final Average</th>
                                 <th>Status / Target</th>
-                                <th>Action</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="student-list">
-                            </tbody>
+                        <tbody id="student-list"></tbody>
                     </table>
                 </div>
             </section>
 
             <section id="settings-section" class="hidden">
-                <div class="card">
-                    <h3>System Administration</h3>
-                    <p>Wiping the database will remove all student records from your local storage.</p>
-                    <button class="btn-danger" onclick="wipeAll()">WIPE ALL DATA</button>
+                <div class="card danger-zone">
+                    <h3>Administrative Actions</h3>
+                    <p>Wiping the database is permanent. Download a backup if needed.</p>
+                    <button class="btn-danger" onclick="wipeAll()">WIPE ALL RECORDS</button>
                 </div>
             </section>
         </main>
